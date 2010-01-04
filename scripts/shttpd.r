@@ -40,10 +40,9 @@ awake-client: func [event /local port res] [
             ] [
                 read port
             ]
-            false
         ]
-        wrote [close port true]
-        close [close port true]
+        wrote [close port]
+        close [close port]
     ]
 ]
 
