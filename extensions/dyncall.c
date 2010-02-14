@@ -39,22 +39,27 @@ RXIEXT const char *RX_Init(int opts, RXILIB *lib) {
 
 RXIEXT int RX_Call(int cmd, RXIFRM *frm) {
     char *library, *symbol, *spec;
+    void *dll, *fun;
+    DCCallVM *vm;
+    REBSER *args;
+    RXIARG val;
+    i32 args_i, args_n, val_type;
+
     RXI_GET_STRING(RXA_SERIES(frm, 1), RXA_INDEX(frm, 1), (void**)&library);
     RXI_GET_STRING(RXA_SERIES(frm, 3), RXA_INDEX(frm, 3), (void**)&symbol);
     RXI_GET_STRING(RXA_SERIES(frm, 4), RXA_INDEX(frm, 4), (void**)&spec);
-    REBSER *args = RXA_SERIES(frm, 5);
-    i32 args_i = RXA_INDEX(frm, 5);
-    i32 args_n = RXI_SERIES_INFO(args, RXI_INFO_TAIL);
+    args = RXA_SERIES(frm, 5);
+    args_i = RXA_INDEX(frm, 5);
+    args_n = RXI_SERIES_INFO(args, RXI_INFO_TAIL);
 
-    void *dll = dlLoadLibrary(library); /* FIXME use OS_OPEN_LIBRARY */
-    void *fun = dlFindSymbol(dll, symbol); /* FIXME use OS_FIND_FUNCTION */
+    dll = dlLoadLibrary(library); /* FIXME use OS_OPEN_LIBRARY */
+    fun = dlFindSymbol(dll, symbol); /* FIXME use OS_FIND_FUNCTION */
 
-    DCCallVM* vm = dcNewCallVM(4096); /* FIXME magic number */
+    vm = dcNewCallVM(4096); /* FIXME magic number */
     dcMode(vm, DC_CALL_C_DEFAULT); /* FIXME handle cconv param */
 
     for (; args_i < args_n && *spec != ')'; ++args_i, ++spec) {
-        RXIARG val;
-        i32 val_type = RXI_GET_VALUE(args, args_i, &val);
+        val_type = RXI_GET_VALUE(args, args_i, &val);
         switch (*spec) {
             case 'i':
                 assert(val_type == RXT_INTEGER && "Invalid argument type");
