@@ -9,6 +9,7 @@
 #include "reb-ext.h"
 
 #include <assert.h>
+#include <dynload.h>
 #include <dyncall.h>
 
 const char *init_block =
@@ -45,8 +46,8 @@ RXIEXT int RX_Call(int cmd, RXIFRM *frm) {
     i32 args_i = RXA_INDEX(frm, 5);
     i32 args_n = RXI_SERIES_INFO(args, RXI_INFO_TAIL);
 
-    void *dll = (void*)dlopen(library); /* FIXME use OS_OPEN_LIBRARY */
-    void *fun = (void*)dlsym(dll, symbol); /* FIXME use OS_FIND_FUNCTION */
+    void *dll = dlLoadLibrary(library); /* FIXME use OS_OPEN_LIBRARY */
+    void *fun = dlFindSymbol(dll, symbol); /* FIXME use OS_FIND_FUNCTION */
 
     DCCallVM* vm = dcNewCallVM(4096); /* FIXME magic number */
     dcMode(vm, DC_CALL_C_DEFAULT); /* FIXME handle cconv param */
@@ -81,7 +82,7 @@ RXIEXT int RX_Call(int cmd, RXIFRM *frm) {
 
     dcFree(vm);
 
-    dlclose(dll); /* FIXME use OS_CLOSE_LIBRARY */
+    dlFreeLibrary(dll); /* FIXME use OS_CLOSE_LIBRARY */
 
     return RXR_VALUE;
 }
