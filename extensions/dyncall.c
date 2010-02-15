@@ -12,6 +12,8 @@
 #include <dynload.h>
 #include <dyncall.h>
 
+const int default_vm_size = 4096;
+
 const char *init_block =
     "REBOL [\n"
         "Title: {dyncall extension}\n"
@@ -54,8 +56,7 @@ RXIEXT int RX_Call(int cmd, RXIFRM *frm) {
 
     dll = dlLoadLibrary(library); /* FIXME use OS_OPEN_LIBRARY */
     fun = dlFindSymbol(dll, symbol); /* FIXME use OS_FIND_FUNCTION */
-
-    vm = dcNewCallVM(4096); /* FIXME magic number */
+    vm = dcNewCallVM(default_vm_size);
     dcMode(vm, DC_CALL_C_DEFAULT); /* FIXME handle cconv param */
 
     for (; args_i < args_n && *spec != ')'; ++args_i, ++spec) {
@@ -63,11 +64,11 @@ RXIEXT int RX_Call(int cmd, RXIFRM *frm) {
         switch (*spec) {
             case 'i':
                 assert(val_type == RXT_INTEGER && "Invalid argument type");
-                dcArgInt(vm, val.int64);
+                dcArgInt(vm, (DCint)val.int64);
                 break;
             case 'd':
                 assert(val_type == RXT_DECIMAL && "Invalid argument type");
-                dcArgDouble(vm, val.dec64);
+                dcArgDouble(vm, (DCdouble)val.dec64);
                 break;
             default:
                 assert(0 && "Unknown argument spec");
@@ -83,10 +84,11 @@ RXIEXT int RX_Call(int cmd, RXIFRM *frm) {
             RXA_DEC64(frm, 1) = dcCallDouble(vm, (DCpointer)fun);
             RXA_TYPE(frm, 1) = RXT_DECIMAL;
             break;
+        default:
+            assert(0 && "Unknown return spec");
     }
 
     dcFree(vm);
-
     dlFreeLibrary(dll); /* FIXME use OS_CLOSE_LIBRARY */
 
     return RXR_VALUE;
