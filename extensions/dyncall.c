@@ -74,8 +74,8 @@ RXIEXT int RX_Call(int cmd, RXIFRM *frm) {
                 assert(0 && "Unknown argument spec");
         }
     }
-    assert(*spec++ == ')' && "Invalid spec");
-    switch (*spec) {
+    assert(*spec == ')' && "Invalid spec");
+    switch (*++spec) {
         case 'i':
             RXA_INT64(frm, 1) = dcCallInt(vm, (DCpointer)fun);
             RXA_TYPE(frm, 1) = RXT_INTEGER;
