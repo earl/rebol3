@@ -13,11 +13,15 @@ error-response: func [code uri /local values] [
     reduce [code "text/html" reword error-template compose values]
 ]
 
-send-response: func [port res /local code text type body] [
+send-response: func [port res /local code text type body chunk] [
     set [code type body] res
     write port ajoin ["HTTP/1.0 " code " " code-map/:code crlf]
     write port ajoin ["Content-type: " type crlf crlf]
-    write port body
+    chunk: 32000
+    until [
+        write port copy/part body chunk
+        tail? body: skip body chunk
+    ]
 ]
 
 handle-request: func [config req /local uri type file data] [
