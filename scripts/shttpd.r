@@ -18,10 +18,7 @@ send-response: func [port res /local code text type body chunk] [
     write port ajoin ["HTTP/1.0 " code " " code-map/:code crlf]
     write port ajoin ["Content-type: " type crlf crlf]
     chunk: 32000
-    until [
-        write port copy/part body chunk
-        tail? body: skip body chunk
-    ]
+    until [write port take/part body 32'000 empty? body]
 ]
 
 handle-request: func [config req /local uri type file data] [
