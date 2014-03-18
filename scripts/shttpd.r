@@ -1,7 +1,7 @@
 REBOL [title: "A tiny static HTTP server" author: 'abolka date: 2009-11-04]
 
 code-map: make map! [200 "OK" 400 "Forbidden" 404 "Not Found"]
-mime-map: make map! ["html" "text/html" "jpg" "image/jpeg" "r" "text/plain"]
+mime-map: make map! ["html" "text/html" "jpg" "image/jpeg" "r" "text/plain" "css" "text/css" "js" "application/javascript"]
 error-template: {
     <html><head><title>$code $text</title></head><body><h1>$text</h1>
     <p>Requested URI: <code>$uri</code></p><hr><i>shttpd.r</i> on
@@ -13,17 +13,18 @@ error-response: func [code uri /local values] [
     reduce [code "text/html" reword error-template compose values]
 ]
 
-send-response: func [port res /local code text type body] [
+send-response: func [port res /local code text type body chunk] [
     set [code type body] res
     write port ajoin ["HTTP/1.0 " code " " code-map/:code crlf]
     write port ajoin ["Content-type: " type crlf crlf]
-    write port body
+    chunk: 32000
+    until [write port take/part body 32'000 empty? body]
 ]
 
 handle-request: func [config req /local uri type file data] [
     parse to-string req ["get " ["/ " | copy uri to " "]]
     default 'uri "index.html"
-    parse uri [thru "." copy ext to end (type: mime-map/:ext)]
+    parse uri [some [thru "."] copy ext to end (type: mime-map/:ext)]
     default 'type "text/plain"
     if not exists? file: config/root/:uri [return error-response 404 uri]
     if error? try [data: read file] [return error-response 400 uri]
