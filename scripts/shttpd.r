@@ -1,7 +1,11 @@
 REBOL [title: "A tiny static HTTP server" author: 'abolka date: 2009-11-04]
 
 code-map: make map! [200 "OK" 400 "Forbidden" 404 "Not Found"]
-mime-map: make map! ["html" "text/html" "jpg" "image/jpeg" "r" "text/plain"]
+mime-map: make map! [
+    "html" "text/html" "css" "text/css" "js" "application/javascript"
+    "gif" "image/gif" "jpg" "image/jpeg" "png" "image/png"
+    "r" "text/plain" "r3" "text/plain" "reb" "text/plain"
+]
 error-template: {
     <html><head><title>$code $text</title></head><body><h1>$text</h1>
     <p>Requested URI: <code>$uri</code></p><hr><i>shttpd.r</i> on
