@@ -17,13 +17,24 @@ error-response: func [code uri /local values] [
     reduce [code "text/html" reword error-template compose values]
 ]
 
-send-response: func [port res /local code text type body] [
+start-response: func [port res /local code text type body] [
     set [code type body] res
     write port ajoin ["HTTP/1.0 " code " " code-map/:code crlf]
     write port ajoin ["Content-type: " type crlf]
     write port ajoin ["Content-length: " length? body crlf]
     write port crlf
-    write port body
+    ;; Manual chunking is only necessary because of several bugs in R3's
+    ;; networking stack (mainly cc#2098 & cc#2160; in some constellations also
+    ;; cc#2103). Once those are fixed, we should directly use R3's internal
+    ;; chunking instead: `write port body`.
+    port/locals: copy body
+]
+
+send-chunk: func [port] [
+    ;; Trying to send data >32'000 bytes at once will trigger R3's internal
+    ;; chunking (which is buggy, see above). So we cannot use chunks >32'000
+    ;; for our manual chunking.
+    unless empty? port/locals [write port take/part port/locals 32'000]
 ]
 
 handle-request: func [config req /local uri type file data] [
@@ -42,12 +53,12 @@ awake-client: func [event /local port res] [
         read [
             either find port/data to-binary join crlf crlf [
                 res: handle-request port/locals/config port/data
-                send-response port res
+                start-response port res
             ] [
                 read port
             ]
         ]
-        wrote [close port]
+        wrote [unless send-chunk port [close port]]
         close [close port]
     ]
 ]
