@@ -20,7 +20,9 @@ error-response: func [code uri /local values] [
 send-response: func [port res /local code text type body] [
     set [code type body] res
     write port ajoin ["HTTP/1.0 " code " " code-map/:code crlf]
-    write port ajoin ["Content-type: " type crlf crlf]
+    write port ajoin ["Content-type: " type crlf]
+    write port ajoin ["Content-length: " length? body crlf]
+    write port crlf
     write port body
 ]
 
