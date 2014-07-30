@@ -28,7 +28,7 @@ handle-request: func [config req /local uri type file data] [
     parse to-string req ["get " ["/ " | copy uri to " "]]
     default 'uri "index.html"
     parse uri [thru "." copy ext to end (type: mime-map/:ext)]
-    default 'type "text/plain"
+    default 'type "application/octet-stream"
     if not exists? file: config/root/:uri [return error-response 404 uri]
     if error? try [data: read file] [return error-response 400 uri]
     reduce [200 type data]
