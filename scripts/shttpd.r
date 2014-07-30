@@ -6,7 +6,7 @@ mime-map: make map! [
     "gif" "image/gif" "jpg" "image/jpeg" "png" "image/png"
     "r" "text/plain" "r3" "text/plain" "reb" "text/plain"
 ]
-error-template: {
+error-template: trim/auto {
     <html><head><title>$code $text</title></head><body><h1>$text</h1>
     <p>Requested URI: <code>$uri</code></p><hr><i>shttpd.r</i> on
     <a href="http://www.rebol.com/rebol3/">REBOL 3</a> $r3</body></html>
